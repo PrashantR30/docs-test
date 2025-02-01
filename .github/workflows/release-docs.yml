@@ -39,16 +39,21 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --disable-pip-version-check -r requirements.txt
-      
-      # - name: Extract version from tag
-      #   run: |
-      #     TAG_NAME="${GITHUB_REF#refs/tags/}"
-      #     echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
 
-      # - name: Deploy docs with Mike
-      #   run: |
-      #     mike deploy --push "${TAG_NAME}"
-      #     mike deploy --push --update-aliases "${TAG_NAME}"
+      # - name: deploy mkdocs
+      #   run: mkdocs gh-deploy --force
+    
 
-      - name: Deploy Docs
-        run: mkdocs gh-deploy --force
+      - name: Extract version from tag
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+  
+      - name: Deploy docs with Mike
+        run: |
+          mike deploy --push "${TAG_NAME}"
+          mike deploy --push --update-aliases "${TAG_NAME}" latest
+
+      - name: Force Push `gh-pages`
+        run: |
+          git push origin gh-pages --force
