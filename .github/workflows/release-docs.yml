@@ -1,0 +1,54 @@
+name: publish docs
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on any tag push or force-push
+  workflow_dispatch:  # Allows manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      
+      - name: Caches deps
+        uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      
+      - name: Install mkdocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install --disable-pip-version-check -r requirements.txt
+      
+      # - name: Extract version from tag
+      #   run: |
+      #     TAG_NAME="${GITHUB_REF#refs/tags/}"
+      #     echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
+      # - name: Deploy docs with Mike
+      #   run: |
+      #     mike deploy --push "${TAG_NAME}"
+      #     mike deploy --push --update-aliases "${TAG_NAME}"
+
+      - name: Deploy Docs
+        run: mkdocs gh-deploy --force
